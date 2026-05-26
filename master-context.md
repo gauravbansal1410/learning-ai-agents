@@ -39,6 +39,7 @@
 - Committing directly via github.com (no cloning on work laptop)
 - Daily progress logged in progress-log.md
 - This master context lives in master-context.md
+- Daily progress logged as YYYYMMDD-progress.md (e.g. 20260526-progress.md)
 
 ## Learning Plan
 
@@ -74,4 +75,5 @@ n8n for workflow structure → Claude Code for custom logic
 - Remind me to commit to GitHub after every session
 - Keep costs low, prefer local/self-hosted
 - Suggest opening a new thread if conversation gets too long
-- Start each new thread with current progress from progress-log.md
+- Start each new thread with current progress
+
