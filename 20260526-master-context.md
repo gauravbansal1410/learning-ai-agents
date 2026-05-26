@@ -100,5 +100,8 @@ n8n for workflow structure → Claude Code for custom logic
 - Keep costs low, prefer local/self-hosted
 
 ## Context Management
-- Remind me to open a new thread when conversation gets too long
-- Paste master-context.md at the start of each new thread
+- Start a new thread for each learning session
+- Remind me to commit to GitHub at end of sessions
+- Suggest opening new thread if conversation gets too long
+- Master context lives in Project Instructions, 
+  not in chat
