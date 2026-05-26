@@ -98,3 +98,7 @@ n8n for workflow structure → Claude Code for custom logic
 - High level overview first, then details
 - Remind me to commit to GitHub after sessions
 - Keep costs low, prefer local/self-hosted
+
+## Context Management
+- Remind me to open a new thread when conversation gets too long
+- Paste master-context.md at the start of each new thread
