@@ -77,3 +77,12 @@ n8n for workflow structure → Claude Code for custom logic
 - Suggest opening a new thread if conversation gets too long
 - Start each new thread with current progress
 
+## What I've Built
+1. Manual Trigger → Edit Fields → Basic LLM Chain (v1 summarizer)
+2. Chat Trigger → Basic LLM Chain (v2 summarizer)
+3. Thai Slack Summarizer — translates Thai → English bullets
+4. Memory Chat Assistant — AI Agent + Simple Memory
+
+## Current Status
+Phase 1 complete
+Starting Phase 2 next session
