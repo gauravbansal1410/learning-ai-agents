@@ -1,0 +1,92 @@
+{
+  "name": "thai slack summarizer",
+  "nodes": [
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a helpful assistant. The user will paste a Slack thread that is written in Thai and English. \n\nYour job:\n1. Translate the content to English\n2. Summarize it as clear, simple bullet points\n3. Each bullet should be one key idea\n4. Keep it brief and easy to read\n5. Return ONLY the bullet points — no introduction, no translation, no extra text\n\nSlack thread:\n{{ $json.chatInput }}",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        800,
+        0
+      ],
+      "id": "cb8035f6-2f59-4c57-9ee5-3077f10aea04",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "model": "llama3:latest",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        800,
+        192
+      ],
+      "id": "1d0388c2-1adc-4a8e-98ab-0b7f0f1d876d",
+      "name": "Ollama Chat Model",
+      "credentials": {
+        "ollamaApi": {
+          "id": "S49IeOVyM2tCZJtV",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        496,
+        0
+      ],
+      "id": "eb45f243-303d-4c08-9b0d-63605618efe1",
+      "name": "When chat message received",
+      "webhookId": "25143f5e-acdd-4491-9a0d-cf892be51457"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Ollama Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "17b868ed-baf3-4669-b71d-96e19dbdecf5",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "5e55ead25fb1812688c91b1ea671d29e2b004d67c7a1a0c0df9ef025aa54c7f5"
+  },
+  "id": "0bltYPbZozyfxYrD",
+  "tags": []
+}
