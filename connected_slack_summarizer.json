@@ -1,0 +1,198 @@
+{
+  "name": "connected_slack_summarizer",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "a7445ca5-70bc-4670-9ca6-a63685d9d56f",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "resource": "channel",
+        "operation": "history",
+        "channelId": {
+          "__rl": true,
+          "value": "C0B6PBMT01Y",
+          "mode": "id"
+        },
+        "limit": 10,
+        "filters": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.4,
+      "position": [
+        208,
+        0
+      ],
+      "id": "eaa90dbc-e351-418b-a1af-7ff4a03d6957",
+      "name": "Get the history of a channel",
+      "webhookId": "cb4dd53f-6a3f-48a2-b91a-69c6c50bd44e",
+      "credentials": {
+        "slackApi": {
+          "id": "HCFnQqVyslpWVftl",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.text.join('\\n') }}",
+        "options": {
+          "systemMessage": "You are a helpful assistant that summarizes Slack conversations. \nGiven a list of Slack messages, provide a concise summary in 3-5 bullet points in English. \nFocus on the key topics discussed and any decisions or action items mentioned."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        624,
+        0
+      ],
+      "id": "a5cea6d2-83f2-4314-9911-57f1053a85e0",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "llama3:latest",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        624,
+        208
+      ],
+      "id": "ec7a0cff-e61e-4c23-9e19-5f40523e5677",
+      "name": "Ollama Chat Model",
+      "credentials": {
+        "ollamaApi": {
+          "id": "S49IeOVyM2tCZJtV",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "text"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        416,
+        0
+      ],
+      "id": "4e5b7021-082e-4875-9b5e-b371f22110ce",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C0B6PBMT01Y",
+          "mode": "id"
+        },
+        "text": "={{ $json.output }}",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.4,
+      "position": [
+        976,
+        0
+      ],
+      "id": "3a20f18d-ad81-4df7-833c-43e611d9fa01",
+      "name": "Send a message",
+      "webhookId": "76287007-573f-4104-a976-814cb689917d",
+      "credentials": {
+        "slackApi": {
+          "id": "HCFnQqVyslpWVftl",
+          "name": "Slack account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Get the history of a channel",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get the history of a channel": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "6a8e7b08-0698-4a9a-8a83-1937f2376282",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "5e55ead25fb1812688c91b1ea671d29e2b004d67c7a1a0c0df9ef025aa54c7f5"
+  },
+  "id": "S3vzDtDIEgOwu9Kf",
+  "tags": []
+}
