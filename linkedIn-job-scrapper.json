@@ -1,0 +1,205 @@
+{
+  "name": "linkedIn-job-scrapper",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -432,
+        -16
+      ],
+      "id": "be19cf4a-84e7-4e8e-93c5-754c3fcdcec8",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "url": "https://api.apify.com/v2/acts/supreme_coder~linkedin-post/runs/last/dataset/items?token=YOUR_APIFY_TOKEN_HERE",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -224,
+        -16
+      ],
+      "id": "0149f938-6946-43cc-8612-76f1cbf95b26",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "compare": "selectedFields",
+        "fieldsToCompare": "urn",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.removeDuplicates",
+      "typeVersion": 2,
+      "position": [
+        -16,
+        -16
+      ],
+      "id": "e79cca85-8d45-4e43-8a60-d249b3a154cd",
+      "name": "Remove Duplicates"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "37e246c1-e2aa-4fb4-b217-a7e5d1db5395",
+              "name": "authorName",
+              "value": "={{ $json.authorName }}",
+              "type": "string"
+            },
+            {
+              "id": "ce180db4-c05a-48e8-a8e9-bdd494385dbe",
+              "name": "authorHeadline",
+              "value": "={{ $json.authorHeadline }}",
+              "type": "string"
+            },
+            {
+              "id": "97ef2d46-d96f-4a2b-b700-a0648e3b2a53",
+              "name": "text",
+              "value": "={{ $json.text }}",
+              "type": "string"
+            },
+            {
+              "id": "57df88af-201b-42c8-875f-5a6626933d38",
+              "name": "url",
+              "value": "={{ $json.url.split('?')[0] }}",
+              "type": "string"
+            },
+            {
+              "id": "8a66a343-b3ab-43b1-8a15-fe070f81f2ff",
+              "name": "timeSincePosted",
+              "value": "={{ $json.timeSincePosted }}",
+              "type": "string"
+            },
+            {
+              "id": "7473fe29-6f0e-4223-8ee2-0771d09201ef",
+              "name": "numLikes",
+              "value": "={{ $json.numLikes }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        192,
+        -16
+      ],
+      "id": "1e7273a7-f0c3-42be-85f7-a4c65e273c95",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        400,
+        -16
+      ],
+      "id": "ed583817-75fc-4a2b-bcba-1fd891fe5495",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "sendTo": "YOUR_EMAIL",
+        "subject": "=Daily PM Jobs Digest — {{ $json.data.length }} posts found",
+        "message": "=<h2>PM Job Opportunities — Today's Digest</h2>  {{ $json.data.map(post => ` <hr> <p><strong>${post.authorName}</strong> — ${post.authorHeadline}</p> <p>${post.text.substring(0, 300)}...</p> <p>⏱ ${post.timeSincePosted} ago &nbsp;|&nbsp; 👍 ${post.numLikes} likes</p> <p><a href=\"${post.url}\">View Post →</a></p> `).join('') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        608,
+        -16
+      ],
+      "id": "8337754d-dee3-4727-a670-c1cf09e7e4a4",
+      "name": "Send a message",
+      "webhookId": "cbe3286e-cb9c-415c-ac14-67605851f9ff",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "hnxm65iFikZalh20",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Remove Duplicates",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Remove Duplicates": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "bab6d8d3-1a00-4d05-bd48-b037e6fe8f84",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "5e55ead25fb1812688c91b1ea671d29e2b004d67c7a1a0c0df9ef025aa54c7f5"
+  },
+  "id": "meZ5JAtAxglM6kP9",
+  "tags": []
+}
