@@ -1,0 +1,465 @@
+{
+  "name": "linkedIn-job-scrapper_v2",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -576,
+        -208
+      ],
+      "id": "be19cf4a-84e7-4e8e-93c5-754c3fcdcec8",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "compare": "selectedFields",
+        "fieldsToCompare": "urn",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.removeDuplicates",
+      "typeVersion": 2,
+      "position": [
+        48,
+        -208
+      ],
+      "id": "e79cca85-8d45-4e43-8a60-d249b3a154cd",
+      "name": "Remove Duplicates"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "37e246c1-e2aa-4fb4-b217-a7e5d1db5395",
+              "name": "authorName",
+              "value": "={{ $json.authorName }}",
+              "type": "string"
+            },
+            {
+              "id": "ce180db4-c05a-48e8-a8e9-bdd494385dbe",
+              "name": "authorHeadline",
+              "value": "={{ $json.authorHeadline }}",
+              "type": "string"
+            },
+            {
+              "id": "97ef2d46-d96f-4a2b-b700-a0648e3b2a53",
+              "name": "text",
+              "value": "={{ $json.text }}",
+              "type": "string"
+            },
+            {
+              "id": "57df88af-201b-42c8-875f-5a6626933d38",
+              "name": "url",
+              "value": "={{ $json.url.split('?')[0] }}",
+              "type": "string"
+            },
+            {
+              "id": "8a66a343-b3ab-43b1-8a15-fe070f81f2ff",
+              "name": "timeSincePosted",
+              "value": "={{ $json.timeSincePosted }}",
+              "type": "string"
+            },
+            {
+              "id": "7473fe29-6f0e-4223-8ee2-0771d09201ef",
+              "name": "numLikes",
+              "value": "={{ $json.numLikes }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        192,
+        -208
+      ],
+      "id": "1e7273a7-f0c3-42be-85f7-a4c65e273c95",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        1136,
+        -224
+      ],
+      "id": "ed583817-75fc-4a2b-bcba-1fd891fe5495",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "sendTo": "YOUR_EMAIL@gmail.com",
+        "subject": "=Daily PM Jobs Digest — {{ $json.data.length }} posts found",
+        "message": "=<h2>PM Job Opportunities - Today's Digest</h2>\n{{ $json.data.map(post => `\n  <hr>\n  <p><strong>Score: ${post.score}/10</strong> — ${post.reason}</p>\n  <p><strong>${post.authorName}</strong> — ${post.authorHeadline}</p>\n  <p>${post.posttext.substring(0, 300)}...</p>\n  <p>⏱ ${post.timeSincePosted} ago</p> \n  <p>👍 ${post.numLikes} likes</p>\n  <p><a href=\"${post.url}\">View Post →</a></p>\n`).join('') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1296,
+        -224
+      ],
+      "id": "8337754d-dee3-4727-a670-c1cf09e7e4a4",
+      "name": "Send a message",
+      "webhookId": "cbe3286e-cb9c-415c-ac14-67605851f9ff",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "hnxm65iFikZalh20",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://raw.githubusercontent.com/YOUR_RESUME_LINK.pdf",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -400,
+        -208
+      ],
+      "id": "dfcf051d-6eb7-4c21-b840-22b456175292",
+      "name": "HTTP Request-get resume"
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        -256,
+        -208
+      ],
+      "id": "c2fd12bc-3e9d-4c50-b86b-dbc1e20516b4",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "url": "https://api.apify.com/v2/acts/supreme_coder~linkedin-post/runs/last/dataset/items?token=YOUR_APIFY_TOKEN_HERE",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -112,
+        -208
+      ],
+      "id": "0149f938-6946-43cc-8612-76f1cbf95b26",
+      "name": "HTTP Request - apify"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a job relevance scorer for a job seeker.\n\nCANDIDATE RESUME:\n{{ $('Extract from File').first().json.text }}\n\nTASK:\nRead this LinkedIn post and score how relevant it is for this candidate.\n\nLINKEDIN POST:\n{{ $json.text }}\n\nReturn ONLY a valid JSON object, nothing else:\n{\n  \"score\": <number 1 to 10>,\n  \"reason\": \"<one sentence explaining why>\"\n}\n\nScore guide:\n- 8-10: Clearly hiring a PM, right seniority, relevant domain\n- 5-7: Possibly relevant but vague, wrong city, or unclear seniority  \n- 1-4: Not a hiring post, wrong role, or irrelevant",
+        "messages": {
+          "messageValues": []
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        336,
+        -208
+      ],
+      "id": "5dd2f9d5-a4f8-4a43-a32b-7d86d4e478f9",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "model": "llama3:latest",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmOllama",
+      "typeVersion": 1,
+      "position": [
+        336,
+        -16
+      ],
+      "id": "c82d9972-1c5a-4b45-8e24-78747743feac",
+      "name": "Ollama Model",
+      "credentials": {
+        "ollamaApi": {
+          "id": "S49IeOVyM2tCZJtV",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a2920e0a-7119-4a99-b489-a3cfd936c5fe",
+              "name": "score",
+              "value": "={{ $json.score }}",
+              "type": "string"
+            },
+            {
+              "id": "0640e861-bd0c-432b-878f-7279536ce092",
+              "name": "reason",
+              "value": "={{ $json.reason }}",
+              "type": "string"
+            },
+            {
+              "id": "f388de4f-4b12-498f-b7e2-1575f36e7099",
+              "name": "authorName",
+              "value": "={{ $('Edit Fields').item.json.authorName }}",
+              "type": "string"
+            },
+            {
+              "id": "71e9477d-c34a-499d-b1c4-46e8a9e0f2c4",
+              "name": "authorHeadline",
+              "value": "={{ $('Edit Fields').item.json.authorHeadline }}",
+              "type": "string"
+            },
+            {
+              "id": "e3cc5edd-954b-4995-baa9-9f7aaa0aa419",
+              "name": "posttext",
+              "value": "={{ $('Edit Fields').item.json.text }}",
+              "type": "string"
+            },
+            {
+              "id": "da9ab77f-b4e2-4995-bcb2-54868942a550",
+              "name": "url",
+              "value": "={{ $('Edit Fields').item.json.url }}",
+              "type": "string"
+            },
+            {
+              "id": "98bc3f53-2bd1-4713-85b3-44ff484b9b9a",
+              "name": "timeSincePosted",
+              "value": "={{ $('Edit Fields').item.json.timeSincePosted }}",
+              "type": "string"
+            },
+            {
+              "id": "84708d1a-b461-4207-934a-edd656fca1c3",
+              "name": "numLikes",
+              "value": "={{ $('Edit Fields').item.json.numLikes }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        768,
+        -208
+      ],
+      "id": "603e482c-ffd2-4d73-b240-823de42dc2e1",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nreturn items.map(item => {\n  const text = item.json.text || item.json.output || '';\n  let score = null;\n  let reason = null;\n\n  try {\n    const match = text.match(/\\{[\\s\\S]*?\\}/);\n    if (match) {\n      const parsed = JSON.parse(match[0]);\n      score = parsed.score;\n      reason = parsed.reason;\n    }\n  } catch(e) {}\n\n  if (score === null) {\n    const scoreMatch = text.match(/\"score\":\\s*(\\d+)/);\n    if (scoreMatch) score = parseInt(scoreMatch[1]);\n  }\n\n  if (reason === null) {\n    const reasonMatch = text.match(/\"reason\":\\s*\"([^\"]+)\"/);\n    if (reasonMatch) reason = reasonMatch[1];\n  }\n\n  if (score === null) {\n    score = 0;\n    reason = 'Could not parse response';\n  }\n\n  return {\n    json: {\n      score: score,\n      reason: reason,\n      authorName: item.json.authorName,\n      authorHeadline: item.json.authorHeadline,\n      posttext: item.json.text,\n      url: item.json.url,\n      timeSincePosted: item.json.timeSincePosted\n    }\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        624,
+        -208
+      ],
+      "id": "31e966db-5eca-49a5-b962-3662268b4259",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "6b65423d-be89-422f-b802-2716286af73a",
+              "leftValue": "={{ Number($json.score) }}",
+              "rightValue": 6,
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        912,
+        -208
+      ],
+      "id": "8214d34f-92d6-4a92-b98d-817835da9fdf",
+      "name": "If"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request-get resume",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Remove Duplicates": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request-get resume": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request - apify": {
+      "main": [
+        [
+          {
+            "node": "Remove Duplicates",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request - apify",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "45e0b558-391d-4a5f-9240-ea9535e6b650",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "5e55ead25fb1812688c91b1ea671d29e2b004d67c7a1a0c0df9ef025aa54c7f5"
+  },
+  "id": "meZ5JAtAxglM6kP9",
+  "tags": []
+}
