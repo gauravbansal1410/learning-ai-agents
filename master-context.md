@@ -34,7 +34,7 @@
 └── work/       ← company work only
 
 ## GitHub
-- Repo: https://github.com/gauravbansal1410/learning-ai-agents
+- Repo: https://github.com/<link>
 - Committing directly via github.com (no cloning on work laptop)
 - Daily progress logged in progress-log.md
 - This master context lives in master-context.md
