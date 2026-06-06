@@ -3,7 +3,6 @@
 ## Who I am
 - Complete beginner — no coding background
 - Rarely use terminal
-- Work at LINE MAN Wongnai (Bangkok)
 - Using a company-owned Mac (company-owned)
 - Learning on personal time to future-proof career
 
@@ -24,8 +23,8 @@
 - Claude Code installed
 
 ## My Two Claude Accounts
-- Personal: claude-p (gauravbansal1410@gmail.com, Pro)
-- Work: claude-w (gaurav.b@lmwn.com, Team/LINE MAN Wongnai)
+- Personal: claude-p
+- Work: claude-w
 - Rule: NEVER use claude-w for personal learning
 - Aliases set up in ~/.zshrc
 
