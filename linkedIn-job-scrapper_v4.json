@@ -1,0 +1,737 @@
+{
+  "name": "linkedIn-job-scrapper_v4",
+  "nodes": [
+    {
+      "parameters": {
+        "compare": "selectedFields",
+        "fieldsToCompare": "urn",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.removeDuplicates",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        624
+      ],
+      "id": "a54f2a2a-b38e-4091-ba2d-5ddc3313b724",
+      "name": "Remove Duplicates"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "37e246c1-e2aa-4fb4-b217-a7e5d1db5395",
+              "name": "authorName",
+              "value": "={{ $json.authorName }}",
+              "type": "string"
+            },
+            {
+              "id": "ce180db4-c05a-48e8-a8e9-bdd494385dbe",
+              "name": "authorHeadline",
+              "value": "={{ $json.authorHeadline }}",
+              "type": "string"
+            },
+            {
+              "id": "97ef2d46-d96f-4a2b-b700-a0648e3b2a53",
+              "name": "text",
+              "value": "={{ $json.text }}",
+              "type": "string"
+            },
+            {
+              "id": "57df88af-201b-42c8-875f-5a6626933d38",
+              "name": "url",
+              "value": "={{ $json.url.split('?')[0] }}",
+              "type": "string"
+            },
+            {
+              "id": "8a66a343-b3ab-43b1-8a15-fe070f81f2ff",
+              "name": "timeSincePosted",
+              "value": "={{ $json.timeSincePosted }}",
+              "type": "string"
+            },
+            {
+              "id": "7473fe29-6f0e-4223-8ee2-0771d09201ef",
+              "name": "numLikes",
+              "value": "={{ $json.numLikes }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1280,
+        624
+      ],
+      "id": "3d22bc1f-40a5-4729-9db4-b1d4a7594e26",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        2448,
+        464
+      ],
+      "id": "292cd410-4510-458a-9790-2510456d9fc3",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "sendTo": "YOUR_EMAIL@gmail.com",
+        "subject": "=Daily PM Jobs Digest — {{ $json.data.length }} posts found",
+        "message": "=<h2>PM Job Opportunities - Today's Digest</h2>\n{{ $json.data.map(post => `\n  <hr>\n  <p><strong>Score: ${post.score}/10</strong> — ${post.reason}</p>\n  <p><strong>${post.authorName}</strong> — ${post.authorHeadline}</p>\n  <p>${post.posttext.substring(0, 300)}...</p>\n  <p>⏱ ${post.timeSincePosted} ago</p> \n  <p>👍 ${post.numLikes} likes</p>\n  <p><a href=\"${post.url}\">View Post →</a></p>\n`).join('') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        2624,
+        464
+      ],
+      "id": "15829a1f-38f9-4c09-a2f2-88023c936187",
+      "name": "Send a message",
+      "webhookId": "91e7b17f-3fb7-4fca-b44e-78a756c5633b",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "drpSKcyVEqA4o88n",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://raw.githubusercontent.com/YOUR_LINK.pdf",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        240,
+        624
+      ],
+      "id": "72e099b7-5f5e-4314-b595-3e852586c464",
+      "name": "HTTP Request-get resume"
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        464,
+        624
+      ],
+      "id": "60cb9b0f-7fa2-428b-9591-e768b450cca6",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a strict job relevance scorer.\nRESUME SUMMARY:\n{{ $('Extract from File').first().json.text }}\n\nLINKEDIN POST:\n{{ $json.text }}\n\nSCORING RULES — apply all that match:\n\nStart at 5. Then adjust:\n\nINCREASE score if:\n- Explicitly says \"hiring PM\" or \"looking for PM\" or \"PM opening\" (+2)\n- Mentions Senior PM, Lead PM, or 5+ years experience (+1)\n- Domain matches (+1)\n- Location is Indian city or Remote (+1)\n\nDECREASE score if:\n- No clear job opening — just thought leadership or engagement post (-3)\n- Wrong role (engineer, designer, data scientist, etc.) (-3)\n- Location outside India (-2)\n- Vague post with no company or role details (-1)\n\nIf final score is less than 0, give it a 0.\n\nReturn ONLY valid JSON, no extra text:\n{\n  \"score\": <number 0 to 10>,\n  \"reason\": \"<one sentence explaining the key reason for this score>\"\n}",
+        "messages": {
+          "messageValues": []
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        1696,
+        640
+      ],
+      "id": "4aa77888-6110-49d0-b538-bc22c94434dd",
+      "name": "Basic LLM Chain",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a2920e0a-7119-4a99-b489-a3cfd936c5fe",
+              "name": "score",
+              "value": "={{ $json.score }}",
+              "type": "string"
+            },
+            {
+              "id": "0640e861-bd0c-432b-878f-7279536ce092",
+              "name": "reason",
+              "value": "={{ $json.reason }}",
+              "type": "string"
+            },
+            {
+              "id": "f388de4f-4b12-498f-b7e2-1575f36e7099",
+              "name": "authorName",
+              "value": "={{ $('Edit Fields').item.json.authorName }}",
+              "type": "string"
+            },
+            {
+              "id": "71e9477d-c34a-499d-b1c4-46e8a9e0f2c4",
+              "name": "authorHeadline",
+              "value": "={{ $('Edit Fields').item.json.authorHeadline }}",
+              "type": "string"
+            },
+            {
+              "id": "e3cc5edd-954b-4995-baa9-9f7aaa0aa419",
+              "name": "posttext",
+              "value": "={{ $('Edit Fields').item.json.text }}",
+              "type": "string"
+            },
+            {
+              "id": "da9ab77f-b4e2-4995-bcb2-54868942a550",
+              "name": "url",
+              "value": "={{ $('Edit Fields').item.json.url }}",
+              "type": "string"
+            },
+            {
+              "id": "98bc3f53-2bd1-4713-85b3-44ff484b9b9a",
+              "name": "timeSincePosted",
+              "value": "={{ $('Edit Fields').item.json.timeSincePosted }}",
+              "type": "string"
+            },
+            {
+              "id": "84708d1a-b461-4207-934a-edd656fca1c3",
+              "name": "numLikes",
+              "value": "={{ $('Edit Fields').item.json.numLikes }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1856,
+        480
+      ],
+      "id": "66f5b27d-e91b-47aa-941b-475abd05b8dd",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nreturn items.map(item => {\n  const text = item.json.text || item.json.output || '';\n  let score = null;\n  let reason = null;\n\n  try {\n    const match = text.match(/\\{[\\s\\S]*?\\}/);\n    if (match) {\n      const parsed = JSON.parse(match[0]);\n      score = parsed.score;\n      reason = parsed.reason;\n    }\n  } catch(e) {}\n\n  if (score === null) {\n    const scoreMatch = text.match(/\"score\":\\s*(\\d+)/);\n    if (scoreMatch) score = parseInt(scoreMatch[1]);\n  }\n\n  if (reason === null) {\n    const reasonMatch = text.match(/\"reason\":\\s*\"([^\"]+)\"/);\n    if (reasonMatch) reason = reasonMatch[1];\n  }\n\n  if (score === null) {\n    score = 0;\n    reason = 'Could not parse response';\n  }\n\n  return {\n    json: {\n      score: score,\n      reason: reason,\n      authorName: item.json.authorName,\n      authorHeadline: item.json.authorHeadline,\n      posttext: item.json.text,\n      url: item.json.url,\n      timeSincePosted: item.json.timeSincePosted\n    }\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1664,
+        480
+      ],
+      "id": "49ef022d-f04e-4467-a7c0-60a432d2acac",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "6b65423d-be89-422f-b802-2716286af73a",
+              "leftValue": "={{ Number($json.score) }}",
+              "rightValue": 6,
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        2032,
+        480
+      ],
+      "id": "911593ce-c30c-4f3d-b86d-6b689b79fc93",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nreturn items.sort((a, b) => b.json.score - a.json.score);"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2272,
+        464
+      ],
+      "id": "23f323aa-59f3-4374-b85e-f8299fd1a9b8",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        2272,
+        608
+      ],
+      "id": "b27cbf2b-ff19-48f8-8ce8-7186c16309d3",
+      "name": "No Operation, do nothing"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-flash-latest",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        1696,
+        896
+      ],
+      "id": "5a94b4d3-51a2-4529-8102-15ad0b7a84c4",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "RcuMDKHaY9eeFyab",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://api.apify.com/v2/actor-runs/ef1H31xaDT1GkIO2Q/dataset/items?token=YOUR_TOKEN",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        336,
+        384
+      ],
+      "id": "0dc89497-7eb5-45df-a2b6-efb6a2c079cc",
+      "name": "HTTP Request - fetch last run",
+      "alwaysOutputData": true,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.apify.com/v2/actors/supreme_coder~linkedin-post/run-sync-get-dataset-items?token=YOUR_TOKEN",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n    \"deepScrape\": true,\n    \"limitPerSource\": 10,\n    \"rawData\": false,\n    \"urls\": [\n        \"https://www.linkedin.com/search/results/content/?datePosted=%22past-24h%22&keywords=hiring%20product%20manager%20gurugram\",\n        \"https://www.linkedin.com/search/results/content/?datePosted=%22past-24h%22&keywords=hiring%20product%20manager%20bangalore\",\n        \"https://www.linkedin.com/search/results/content/?datePosted=%22past-24h%22&keywords=hiring%20product%20manager%20hyderabad\"\n    ]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        688,
+        624
+      ],
+      "id": "c49736f4-1a63-4673-b06e-43a81c476a99",
+      "name": "HTTP Request - trigger a new run",
+      "alwaysOutputData": true,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        1472,
+        624
+      ],
+      "id": "894d7f2d-d554-431f-a720-e46f8a2c9010",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "sendTo": "YOUR_EMAIL@gmail.com",
+        "subject": "LinkedIn Job Scraper - Gemini Scoring Error",
+        "message": "Gemini failed to score posts. Check API quota or credential",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        2064,
+        864
+      ],
+      "id": "55497fd2-717a-4117-a6c4-e083d98e46cb",
+      "name": "Gemini_error",
+      "webhookId": "bb8b5249-07a5-4c85-9348-33638c139dae",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "drpSKcyVEqA4o88n",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "fd707845-e5fd-4308-880a-71d29298a5ef",
+              "leftValue": "={{ Object.keys($json).length }}",
+              "rightValue": "0",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        896,
+        608
+      ],
+      "id": "13713ba3-f13b-4fa4-b62f-1a94c5abda88",
+      "name": "if_apify"
+    },
+    {
+      "parameters": {
+        "amount": 15
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        2032,
+        624
+      ],
+      "id": "ec03e1a0-b816-4b03-bfe4-5b859929718c",
+      "name": "Wait",
+      "webhookId": "c01ee546-f58d-46b9-ab98-fbbd521fabe5"
+    },
+    {
+      "parameters": {
+        "sendTo": "YOUR_EMAIL@gmail.com",
+        "subject": "LinkedIn Job Scraper - Apify Error",
+        "message": "Apify failed to fetch data. The actor may be down or rate limited. Please check manually.",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        912,
+        832
+      ],
+      "id": "45b127da-7214-411b-8a93-9aad655a1c26",
+      "name": "email_apify_error",
+      "webhookId": "f1fc9066-5218-440a-a898-896375286313",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "drpSKcyVEqA4o88n",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "YOUR_EMAIL@gmail.com",
+        "subject": "LinkedIn Job Scraper - Apify fetch error",
+        "message": "Apify couldn't fetch any posts. The actor may be down or rate limited. Please check manually.",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1104,
+        416
+      ],
+      "id": "769b4b07-9131-4e4a-a35a-86365ee5d596",
+      "name": "email_apify_fetch_error",
+      "webhookId": "af8a1b2d-b505-4bdd-bd24-3257a3371f97",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "drpSKcyVEqA4o88n",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 9
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        16,
+        624
+      ],
+      "id": "fbba452d-6bee-4736-8d69-b0f5d99e2e94",
+      "name": "Schedule Trigger"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Remove Duplicates": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request-get resume": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request - trigger a new run",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Gemini_error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Operation, do nothing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request - trigger a new run": {
+      "main": [
+        [
+          {
+            "node": "if_apify",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "email_apify_error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request - fetch last run": {
+      "main": [
+        [],
+        []
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "if_apify": {
+      "main": [
+        [
+          {
+            "node": "email_apify_fetch_error",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Remove Duplicates",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request-get resume",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "819fb9a3-431b-4062-82e5-bc6f1f41728d",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "f20372e1109effec654b2b932d6bd400cdd1ddd75e4f739a3cf69d8e94a56046"
+  },
+  "nodeGroups": [],
+  "id": "XwrcFrKQ8itT2SBc",
+  "tags": []
+}
