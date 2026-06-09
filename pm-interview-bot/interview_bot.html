@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PM Design Interview Bot</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Georgia, serif; background: #f9f7f4; color: #1a1a1a; min-height: 100vh; padding: 2rem; }
+    h1 { font-size: 2rem; font-weight: normal; margin-bottom: 0.5rem; }
+    p.sub { color: #666; margin-bottom: 2rem; }
+
+    .screen { display: none; max-width: 680px; margin: 0 auto; }
+    .screen.active { display: block; }
+
+    label { display: block; font-size: 0.85rem; color: #555; margin-bottom: 6px; letter-spacing: 0.05em; }
+    input[type="text"], textarea {
+      width: 100%; padding: 10px 14px; border: 1px solid #ddd;
+      border-radius: 6px; font-size: 1rem; font-family: inherit;
+      background: #fff; margin-bottom: 1rem;
+    }
+    textarea { resize: vertical; min-height: 160px; line-height: 1.6; }
+    button {
+      padding: 10px 22px; border: 1px solid #1a1a1a; border-radius: 6px;
+      background: #1a1a1a; color: #fff; font-size: 0.95rem;
+      cursor: pointer; font-family: inherit;
+    }
+    button.secondary { background: #fff; color: #1a1a1a; margin-right: 8px; }
+
+    .question-box {
+      background: #fff; border-left: 3px solid #1a1a1a;
+      padding: 1rem 1.25rem; margin-bottom: 1.5rem;
+      font-size: 1.05rem; line-height: 1.6; border-radius: 0 6px 6px 0;
+    }
+    .nudge-output, .model-answer-box {
+      background: #fff; border: 1px solid #ddd; border-radius: 6px;
+      padding: 1rem 1.25rem; margin: 1rem 0; line-height: 1.7;
+      font-size: 0.95rem; color: #333; display: none;
+    }
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
+    .col-label { font-size: 0.75rem; letter-spacing: 0.1em; color: #888; margin-bottom: 8px; }
+    .summary-output {
+      background: #fff; border: 1px solid #ddd; border-radius: 6px;
+      padding: 1rem; font-family: monospace; font-size: 0.85rem;
+      white-space: pre-wrap; line-height: 1.6; display: none; margin: 1rem 0;
+    }
+    .key-hint { font-size: 0.8rem; color: #999; margin-top: -0.75rem; margin-bottom: 1rem; }
+  </style>
+</head>
+<body>
+
+  <!-- SCREEN 1: LANDING -->
+  <div class="screen active" id="screen-landing">
+    <h1>PM design interview bot</h1>
+    <p class="sub">Practice product design questions. Get nudges. Compare with model answers.</p>
+
+    <label for="api-key">Gemini API key</label>
+    <input type="text" id="api-key" placeholder="Paste your Gemini API key here" />
+    <p class="key-hint">Stored in your browser only. Never committed to GitHub.</p>
+
+    <button onclick="goToPractice()">Start session →</button>
+  </div>
+
+  <!-- SCREEN 2: PRACTICE -->
+  <div class="screen" id="screen-practice">
+    <h1>Your question</h1>
+    <p class="sub" id="session-meta">Session — loading...</p>
+
+    <div class="question-box" id="question-text">
+      Loading your question...
+    </div>
+
+    <label for="user-notes">Your thinking (rough notes are fine)</label>
+    <textarea id="user-notes" placeholder="Start with: who is the user? what problem are we solving? what would you build?"></textarea>
+
+    <div class="nudge-output" id="nudge-output"></div>
+
+    <button class="secondary" onclick="getNudge()">Get nudge</button>
+    <button onclick="goToDebrief()">I'm done →</button>
+  </div>
+
+  <!-- SCREEN 3: DEBRIEF -->
+  <div class="screen" id="screen-debrief">
+    <h1>Debrief</h1>
+    <p class="sub">Compare your thinking with the model answer.</p>
+
+    <div class="two-col">
+      <div>
+        <p class="col-label">YOUR NOTES</p>
+        <div class="nudge-output" id="your-notes-display" style="display:block;"></div>
+      </div>
+      <div>
+        <p class="col-label">MODEL ANSWER</p>
+        <div class="model-answer-box" id="model-answer-box" style="display:block;">Loading model answer...</div>
+      </div>
+    </div>
+
+    <label for="reflection">What did you miss or want to remember?</label>
+    <textarea id="reflection" placeholder="e.g. forgot to define success metrics, didn't think about edge cases..." style="min-height:80px;"></textarea>
+
+    <button class="secondary" onclick="generateSummary()">Generate GitHub summary</button>
+    <button onclick="copySummary()">Copy to clipboard</button>
+    <button class="secondary" onclick="goToLanding()" style="margin-left:8px;">New question</button>
+
+    <div class="summary-output" id="summary-output"></div>
+  </div>
+
+  <script>
+    // --- NAVIGATION ---
+    function showScreen(id) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+    }
+
+    function goToLanding() { showScreen('screen-landing'); }
+
+    function goToPractice() {
+      const key = document.getElementById('api-key').value.trim();
+      if (!key) { alert('Please enter your Gemini API key to continue.'); return; }
+      localStorage.setItem('gemini_key', key);
+      document.getElementById('session-meta').textContent =
+        'Session — ' + new Date().toISOString().split('T')[0];
+      document.getElementById('question-text').textContent = '(Question will load here in Step 3)';
+      showScreen('screen-practice');
+    }
+
+    function goToDebrief() {
+      const notes = document.getElementById('user-notes').value.trim();
+      if (!notes) { alert('Add some notes before moving on.'); return; }
+      document.getElementById('your-notes-display').textContent = notes;
+      document.getElementById('model-answer-box').textContent = '(Model answer will load here in Step 5)';
+      showScreen('screen-debrief');
+    }
+
+    // --- PLACEHOLDERS (replaced with real Gemini calls in later steps) ---
+    function getNudge() {
+      document.getElementById('nudge-output').style.display = 'block';
+      document.getElementById('nudge-output').textContent = '(Nudge will come from Gemini in Step 4)';
+    }
+
+    function generateSummary() {
+      const summary = `## PM Design Interview — ${new Date().toISOString().split('T')[0]}\n\n` +
+        `**Question:** ${document.getElementById('question-text').textContent}\n\n` +
+        `**My notes:** ${document.getElementById('user-notes').value}\n\n` +
+        `**What I missed:** ${document.getElementById('reflection').value}\n\n` +
+        `*(Summary generation via Gemini coming in Step 6)*`;
+      const box = document.getElementById('summary-output');
+      box.textContent = summary;
+      box.style.display = 'block';
+    }
+
+    function copySummary() {
+      const text = document.getElementById('summary-output').textContent;
+      if (!text) { alert('Generate the summary first.'); return; }
+      navigator.clipboard.writeText(text).then(() => alert('Copied to clipboard!'));
+    }
+
+    // --- RESTORE API KEY IF SAVED ---
+    window.onload = function() {
+      const saved = localStorage.getItem('gemini_key');
+      if (saved) document.getElementById('api-key').value = saved;
+    };
+  </script>
+
+</body>
+</html>
