@@ -87,17 +87,20 @@ Phase 1 complete
 Starting Phase 2 next session
 
 ## n8n on Oracle Cloud VM
-- Access: http://<duckdns-domain>:<port>
-- SSH: ssh -i <path-to-private-key> ubuntu@<oracle-vm-ip>
+- Access: `http://<duckdns-domain>:<port>`
+- SSH: `ssh -i <path-to-private-key> ubuntu@<oracle-vm-ip>`
 - Restart command:
-  docker stop n8n && docker rm n8n
+  `docker stop n8n && docker rm n8n`
+- Run command:
+```
   docker run -d \
     --name n8n \
     --env-file ~/n8n.env \
     -p 5678:5678 \
     -v n8n_data:/home/node/.n8n \
     n8nio/n8n
-- Env file location: ~/n8n.env
-- Required env vars: N8N_PROTOCOL, N8N_HOST, N8N_PORT, 
+```
+- Env file location: `~/n8n.env`
+- Required env vars: `N8N_PROTOCOL, N8N_HOST, N8N_PORT, 
   N8N_SECURE_COOKIE, WEBHOOK_URL, APIFY_API_TOKEN, 
-  GEMINI_API_KEY, RESUME_URL, GMAIL_SENDER, GMAIL_RECIPIENT
+  GEMINI_API_KEY, RESUME_URL, GMAIL_SENDER, GMAIL_RECIPIENT`
