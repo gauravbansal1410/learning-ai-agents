@@ -26,12 +26,15 @@
       cursor: pointer; font-family: inherit;
     }
     button.secondary { background: #fff; color: #1a1a1a; margin-right: 8px; }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
 
     .question-box {
       background: #fff; border-left: 3px solid #1a1a1a;
       padding: 1rem 1.25rem; margin-bottom: 1.5rem;
       font-size: 1.05rem; line-height: 1.6; border-radius: 0 6px 6px 0;
     }
+    .question-box.loading { color: #999; font-style: italic; }
+
     .nudge-output, .model-answer-box {
       background: #fff; border: 1px solid #ddd; border-radius: 6px;
       padding: 1rem 1.25rem; margin: 1rem 0; line-height: 1.7;
@@ -45,6 +48,7 @@
       white-space: pre-wrap; line-height: 1.6; display: none; margin: 1rem 0;
     }
     .key-hint { font-size: 0.8rem; color: #999; margin-top: -0.75rem; margin-bottom: 1rem; }
+    .error-msg { color: #c0392b; font-size: 0.9rem; margin-top: 0.5rem; }
   </style>
 </head>
 <body>
@@ -54,20 +58,17 @@
     <h1>PM design interview bot</h1>
     <p class="sub">Practice product design questions. Get nudges. Compare with model answers.</p>
 
-    <label for="api-key">Gemini API key</label>
-    <input type="text" id="api-key" placeholder="Paste your Gemini API key here" />
-    <p class="key-hint">Stored in your browser only. Never committed to GitHub.</p>
-
-    <button onclick="goToPractice()">Start session →</button>
+    <button id="start-btn" onclick="goToPractice()">Start session &rarr;</button>
+    <p class="error-msg" id="start-error"></p>
   </div>
 
   <!-- SCREEN 2: PRACTICE -->
   <div class="screen" id="screen-practice">
     <h1>Your question</h1>
-    <p class="sub" id="session-meta">Session — loading...</p>
+    <p class="sub" id="session-meta">Session &mdash; loading...</p>
 
-    <div class="question-box" id="question-text">
-      Loading your question...
+    <div class="question-box loading" id="question-text">
+      Generating your question...
     </div>
 
     <label for="user-notes">Your thinking (rough notes are fine)</label>
@@ -76,7 +77,7 @@
     <div class="nudge-output" id="nudge-output"></div>
 
     <button class="secondary" onclick="getNudge()">Get nudge</button>
-    <button onclick="goToDebrief()">I'm done →</button>
+    <button onclick="goToDebrief()">I'm done &rarr;</button>
   </div>
 
   <!-- SCREEN 3: DEBRIEF -->
@@ -106,6 +107,7 @@
   </div>
 
   <script>
+
     // --- NAVIGATION ---
     function showScreen(id) {
       document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -114,36 +116,72 @@
 
     function goToLanding() { showScreen('screen-landing'); }
 
-    function goToPractice() {
-      const key = document.getElementById('api-key').value.trim();
-      if (!key) { alert('Please enter your Gemini API key to continue.'); return; }
-      localStorage.setItem('gemini_key', key);
+    // --- WEBHOOK CONFIG ---
+    const WEBHOOK_URL = 'http://gaurav-n8n.duckdns.org:5678/webhook/pm-interview-question';
+
+    // --- QUESTION GENERATOR (calls n8n, not Gemini directly) ---
+    async function goToPractice() {
+      const errorEl = document.getElementById('start-error');
+      const btn = document.getElementById('start-btn');
+
+      btn.disabled = true;
+      btn.textContent = 'Loading...';
+      errorEl.textContent = '';
+
+      // Set session date
       document.getElementById('session-meta').textContent =
         'Session — ' + new Date().toISOString().split('T')[0];
-      document.getElementById('question-text').textContent = '(Question will load here in Step 3)';
+
+      // Switch to practice screen immediately (shows "Generating..." while call runs)
       showScreen('screen-practice');
+
+      try {
+        const response = await fetch(WEBHOOK_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({})
+        });
+
+        const data = await response.json();
+
+        if (!response.ok || data.error) {
+          throw new Error(data.error || 'Could not generate question. Try again.');
+        }
+
+        // Display question
+        const qBox = document.getElementById('question-text');
+        qBox.textContent = data.question;
+        qBox.classList.remove('loading');
+
+      } catch (err) {
+        showScreen('screen-landing');
+        errorEl.textContent = 'Error: ' + err.message;
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Start session \u2192';
+      }
     }
 
     function goToDebrief() {
       const notes = document.getElementById('user-notes').value.trim();
       if (!notes) { alert('Add some notes before moving on.'); return; }
       document.getElementById('your-notes-display').textContent = notes;
-      document.getElementById('model-answer-box').textContent = '(Model answer will load here in Step 5)';
+      document.getElementById('model-answer-box').textContent = '(Model answer will load here in Step 4)';
       showScreen('screen-debrief');
     }
 
-    // --- PLACEHOLDERS (replaced with real Gemini calls in later steps) ---
+    // --- PLACEHOLDERS (replaced in later steps) ---
     function getNudge() {
       document.getElementById('nudge-output').style.display = 'block';
-      document.getElementById('nudge-output').textContent = '(Nudge will come from Gemini in Step 4)';
+      document.getElementById('nudge-output').textContent = '(Nudge will come from Gemini in Step 3)';
     }
 
     function generateSummary() {
-      const summary = `## PM Design Interview — ${new Date().toISOString().split('T')[0]}\n\n` +
-        `**Question:** ${document.getElementById('question-text').textContent}\n\n` +
-        `**My notes:** ${document.getElementById('user-notes').value}\n\n` +
-        `**What I missed:** ${document.getElementById('reflection').value}\n\n` +
-        `*(Summary generation via Gemini coming in Step 6)*`;
+      const summary = '## PM Design Interview — ' + new Date().toISOString().split('T')[0] + '\n\n' +
+        '**Question:** ' + document.getElementById('question-text').textContent + '\n\n' +
+        '**My notes:** ' + document.getElementById('user-notes').value + '\n\n' +
+        '**What I missed:** ' + document.getElementById('reflection').value + '\n\n' +
+        '*(Summary generation via Gemini coming in Step 5)*';
       const box = document.getElementById('summary-output');
       box.textContent = summary;
       box.style.display = 'block';
@@ -155,11 +193,11 @@
       navigator.clipboard.writeText(text).then(() => alert('Copied to clipboard!'));
     }
 
-    // --- RESTORE API KEY IF SAVED ---
+    // --- SESSION INIT ---
     window.onload = function() {
-      const saved = localStorage.getItem('gemini_key');
-      if (saved) document.getElementById('api-key').value = saved;
+      // Nothing to restore — no credentials stored in browser
     };
+
   </script>
 
 </body>
