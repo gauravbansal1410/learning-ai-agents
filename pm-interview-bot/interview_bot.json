@@ -1,0 +1,96 @@
+{
+  "name": "interview_bot",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "pm-interview-question",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "983dc199-a9a4-4ba6-99bf-1d7febcc753b",
+      "name": "Webhook",
+      "webhookId": "b0ee1d40-f898-4af1-a46b-13b56d9082ec"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-lite-latest:generateContent?key={{ $env.GEMINI_API_KEY }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"contents\": [{\n    \"parts\": [{\n      \"text\": \"You are a PM interview coach. Generate one product design interview question for a Senior PM - generalist. Return ONLY the question. No intro, no explanation, no numbering.\"\n    }]\n  }]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        208,
+        0
+      ],
+      "id": "64e1bcc6-af71-4115-aeca-5ba47ed7da25",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"question\": $json.candidates[0].content.parts[0].text.trim() } }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        416,
+        0
+      ],
+      "id": "e39f11d0-bcbd-443d-8149-d942586678f2",
+      "name": "Respond to Webhook"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "timezone": "Asia/Kolkata",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "versionId": "be0ccf6d-08a7-4526-bc54-bb10b5eecf77",
+  "meta": {
+    "instanceId": "f20372e1109effec654b2b932d6bd400cdd1ddd75e4f739a3cf69d8e94a56046"
+  },
+  "nodeGroups": [],
+  "id": "jdSMDqiL3VmhDKxu",
+  "tags": []
+}
