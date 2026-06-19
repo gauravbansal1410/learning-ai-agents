@@ -1,3 +1,0 @@
-# Question History
-
-- Test case
