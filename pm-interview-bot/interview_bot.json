@@ -11,8 +11,8 @@
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2.1,
       "position": [
-        0,
-        0
+        16,
+        -32
       ],
       "id": "983dc199-a9a4-4ba6-99bf-1d7febcc753b",
       "name": "Webhook",
@@ -24,14 +24,14 @@
         "url": "=https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-lite-latest:generateContent?key={{ $env.GEMINI_API_KEY }}",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "{\n  \"contents\": [{\n    \"parts\": [{\n      \"text\": \"You are a PM interview coach. Generate one product design interview question for a Senior PM - generalist. Return ONLY the question. No intro, no explanation, no numbering.\"\n    }]\n  }]\n}",
+        "jsonBody": "={{ { \"contents\": [{ \"parts\": [{ \"text\": $json.prompt }] }] } }}",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        208,
-        0
+        576,
+        -32
       ],
       "id": "64e1bcc6-af71-4115-aeca-5ba47ed7da25",
       "name": "HTTP Request"
@@ -45,11 +45,52 @@
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.5,
       "position": [
-        416,
-        0
+        752,
+        -32
       ],
       "id": "e39f11d0-bcbd-443d-8149-d942586678f2",
       "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "url": "=https://api.github.com/repos/gauravbansal1410/learning-ai-agents/contents/pm-interview-bot/question_history_{{ $json.body.type }}.md",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "=Authorization",
+              "value": "=Bearer {{ $env.GITHUB_PAT }}"
+            },
+            {
+              "name": "Accept",
+              "value": "application/vnd.github+json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        208,
+        -32
+      ],
+      "id": "2e16e78f-286b-4dd8-880d-17fa9b701283",
+      "name": "HTTP Request1",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const type = $input.first().json.body?.type || 'product_design';\n\nconst prompts = {\n  product_design: 'You are a PM interview coach. Generate one product design interview question for a Senior PM - generalist candidate. The question should be specific and challenging, not generic.',\n  product_sense: '',\n  execution: ''\n};\n\nconst base64Content = $input.first().json.content;\nconst decoded = Buffer.from(base64Content, 'base64').toString('utf-8');\nconst historyText = decoded.trim().length > 20\n  ? `Do NOT repeat any of these past questions:\\n${decoded}`\n  : 'No past questions yet.';\n\nconst prompt = `${prompts[type]}\\n\\n${historyText}\\n\\nReturn ONLY the question. No intro, no explanation, no numbering.`;\n\nreturn {\n  prompt: prompt,\n  sha: $input.first().json.sha,\n  type: type\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        400,
+        -32
+      ],
+      "id": "d2958047-f602-47f9-9672-473a8c12ca58",
+      "name": "Code in JavaScript"
     }
   ],
   "pinData": {},
@@ -58,7 +99,7 @@
       "main": [
         [
           {
-            "node": "HTTP Request",
+            "node": "HTTP Request1",
             "type": "main",
             "index": 0
           }
@@ -75,6 +116,28 @@
           }
         ]
       ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": true,
@@ -86,7 +149,7 @@
     "callerPolicy": "workflowsFromSameOwner",
     "availableInMCP": false
   },
-  "versionId": "be0ccf6d-08a7-4526-bc54-bb10b5eecf77",
+  "versionId": "9d2ddedf-0f64-4849-8c5f-c4ec97d6af0b",
   "meta": {
     "instanceId": "f20372e1109effec654b2b932d6bd400cdd1ddd75e4f739a3cf69d8e94a56046"
   },
