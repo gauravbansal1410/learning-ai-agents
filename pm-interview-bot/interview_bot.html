@@ -14,12 +14,11 @@
     .screen.active { display: block; }
 
     label { display: block; font-size: 0.85rem; color: #555; margin-bottom: 6px; letter-spacing: 0.05em; }
-    input[type="text"], textarea {
+    textarea {
       width: 100%; padding: 10px 14px; border: 1px solid #ddd;
       border-radius: 6px; font-size: 1rem; font-family: inherit;
-      background: #fff; margin-bottom: 1rem;
+      background: #fff; margin-bottom: 1rem; resize: vertical; line-height: 1.6;
     }
-    textarea { resize: vertical; min-height: 160px; line-height: 1.6; }
     button {
       padding: 10px 22px; border: 1px solid #1a1a1a; border-radius: 6px;
       background: #1a1a1a; color: #fff; font-size: 0.95rem;
@@ -35,20 +34,18 @@
     }
     .question-box.loading { color: #999; font-style: italic; }
 
-    .nudge-output, .model-answer-box {
+    .nudge-output, .answer-box, .notes-box {
       background: #fff; border: 1px solid #ddd; border-radius: 6px;
-      padding: 1rem 1.25rem; margin: 1rem 0; line-height: 1.7;
-      font-size: 0.95rem; color: #333; display: none;
+      padding: 1rem 1.25rem; margin: 0.5rem 0 1rem; line-height: 1.7;
+      font-size: 0.95rem; color: #333;
     }
+    .nudge-output { display: none; }
+
     .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
     .col-label { font-size: 0.75rem; letter-spacing: 0.1em; color: #888; margin-bottom: 8px; }
-    .summary-output {
-      background: #fff; border: 1px solid #ddd; border-radius: 6px;
-      padding: 1rem; font-family: monospace; font-size: 0.85rem;
-      white-space: pre-wrap; line-height: 1.6; display: none; margin: 1rem 0;
-    }
-    .key-hint { font-size: 0.8rem; color: #999; margin-top: -0.75rem; margin-bottom: 1rem; }
-    .error-msg { color: #c0392b; font-size: 0.9rem; margin-top: 0.5rem; }
+    .error-msg { color: #c0392b; font-size: 0.9rem; margin-top: 0.75rem; display: block; }
+    .success-msg { color: #27ae60; font-size: 0.9rem; margin-top: 0.75rem; display: block; }
+    .status-msg { color: #888; font-size: 0.9rem; margin-top: 0.75rem; display: block; }
   </style>
 </head>
 <body>
@@ -57,9 +54,8 @@
   <div class="screen active" id="screen-landing">
     <h1>PM design interview bot</h1>
     <p class="sub">Practice product design questions. Get nudges. Compare with model answers.</p>
-
     <button id="start-btn" onclick="goToPractice()">Start session &rarr;</button>
-    <p class="error-msg" id="start-error"></p>
+    <span class="error-msg" id="start-error" style="display:none;"></span>
   </div>
 
   <!-- SCREEN 2: PRACTICE -->
@@ -67,17 +63,15 @@
     <h1>Your question</h1>
     <p class="sub" id="session-meta">Session &mdash; loading...</p>
 
-    <div class="question-box loading" id="question-text">
-      Generating your question...
-    </div>
+    <div class="question-box loading" id="question-text">Generating your question...</div>
 
     <label for="user-notes">Your thinking (rough notes are fine)</label>
-    <textarea id="user-notes" placeholder="Start with: who is the user? what problem are we solving? what would you build?"></textarea>
+    <textarea id="user-notes" style="min-height:160px;" placeholder="Start with: who is the user? what problem are we solving? what would you build?"></textarea>
 
     <div class="nudge-output" id="nudge-output"></div>
 
-    <button class="secondary" onclick="getNudge()">Get nudge</button>
-    <button onclick="goToDebrief()">I'm done &rarr;</button>
+    <button class="secondary" id="nudge-btn" onclick="getNudge()">Get nudge</button>
+    <button id="done-btn" onclick="goToDebrief()">I'm done &rarr;</button>
   </div>
 
   <!-- SCREEN 3: DEBRIEF -->
@@ -88,25 +82,34 @@
     <div class="two-col">
       <div>
         <p class="col-label">YOUR NOTES</p>
-        <div class="nudge-output" id="your-notes-display" style="display:block;"></div>
+        <div class="notes-box" id="your-notes-display"></div>
       </div>
       <div>
         <p class="col-label">MODEL ANSWER</p>
-        <div class="model-answer-box" id="model-answer-box" style="display:block;">Loading model answer...</div>
+        <div class="answer-box" id="model-answer-box">Loading model answer...</div>
       </div>
     </div>
 
     <label for="reflection">What did you miss or want to remember?</label>
-    <textarea id="reflection" placeholder="e.g. forgot to define success metrics, didn't think about edge cases..." style="min-height:80px;"></textarea>
+    <textarea id="reflection" style="min-height:80px;" placeholder="e.g. forgot to define success metrics, didn't think about edge cases..."></textarea>
 
-    <button class="secondary" onclick="generateSummary()">Generate GitHub summary</button>
-    <button onclick="copySummary()">Copy to clipboard</button>
+    <button id="submit-btn" onclick="submitDebrief()">Submit debrief &rarr;</button>
     <button class="secondary" onclick="goToLanding()" style="margin-left:8px;">New question</button>
-
-    <div class="summary-output" id="summary-output"></div>
+    <span id="debrief-status"></span>
   </div>
 
   <script>
+
+    // --- CONFIG (only value to change when self-hosting) ---
+    const CONFIG = {
+      questionWebhook: 'http://gaurav-n8n.duckdns.org:5678/webhook/pm-interview-question',
+      debriefWebhook: 'http://gaurav-n8n.duckdns.org:5678/webhook/pm-interview-debrief'
+    };
+
+    // Session state
+    let sessionType = 'product_design';
+    let currentQuestion = '';
+    let modelAnswer = '';
 
     // --- NAVIGATION ---
     function showScreen(id) {
@@ -114,32 +117,39 @@
       document.getElementById(id).classList.add('active');
     }
 
-    function goToLanding() { showScreen('screen-landing'); }
+    function goToLanding() {
+      // Reset session state
+      document.getElementById('user-notes').value = '';
+      document.getElementById('reflection').value = '';
+      document.getElementById('nudge-output').style.display = 'none';
+      document.getElementById('nudge-output').textContent = '';
+      document.getElementById('question-text').textContent = 'Generating your question...';
+      document.getElementById('question-text').classList.add('loading');
+      document.getElementById('debrief-status').textContent = '';
+      currentQuestion = '';
+      modelAnswer = '';
+      showScreen('screen-landing');
+    }
 
-    // --- WEBHOOK CONFIG ---
-    const WEBHOOK_URL = 'http://gaurav-n8n.duckdns.org:5678/webhook/pm-interview-question';
-
-    // --- QUESTION GENERATOR (calls n8n, not Gemini directly) ---
+    // --- QUESTION GENERATOR ---
     async function goToPractice() {
       const errorEl = document.getElementById('start-error');
       const btn = document.getElementById('start-btn');
 
       btn.disabled = true;
       btn.textContent = 'Loading...';
-      errorEl.textContent = '';
+      errorEl.style.display = 'none';
 
-      // Set session date
       document.getElementById('session-meta').textContent =
         'Session — ' + new Date().toISOString().split('T')[0];
 
-      // Switch to practice screen immediately (shows "Generating..." while call runs)
       showScreen('screen-practice');
 
       try {
-        const response = await fetch(WEBHOOK_URL, {
+        const response = await fetch(CONFIG.questionWebhook, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({})
+          body: JSON.stringify({ type: sessionType })
         });
 
         const data = await response.json();
@@ -148,55 +158,128 @@
           throw new Error(data.error || 'Could not generate question. Try again.');
         }
 
-        // Display question
+        currentQuestion = data.question;
         const qBox = document.getElementById('question-text');
-        qBox.textContent = data.question;
+        qBox.textContent = currentQuestion;
         qBox.classList.remove('loading');
 
       } catch (err) {
         showScreen('screen-landing');
         errorEl.textContent = 'Error: ' + err.message;
+        errorEl.style.display = 'block';
       } finally {
         btn.disabled = false;
         btn.textContent = 'Start session \u2192';
       }
     }
 
-    function goToDebrief() {
+    // --- DEBRIEF: get model answer then show screen ---
+    async function goToDebrief() {
       const notes = document.getElementById('user-notes').value.trim();
       if (!notes) { alert('Add some notes before moving on.'); return; }
-      document.getElementById('your-notes-display').textContent = notes;
-      document.getElementById('model-answer-box').textContent = '(Model answer will load here in Step 4)';
+
+      const btn = document.getElementById('done-btn');
+      btn.disabled = true;
+      btn.textContent = 'Loading model answer...';
+
+      try {
+        const response = await fetch(CONFIG.questionWebhook, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type: sessionType, mode: 'model_answer', question: currentQuestion })
+        });
+
+        const data = await response.json();
+        modelAnswer = data.model_answer || data.question || 'Could not load model answer.';
+
+      } catch (err) {
+        modelAnswer = 'Could not load model answer. You can still submit your debrief.';
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "I'm done \u2192";
+      }
+
+      document.getElementById('your-notes-display').textContent =
+        document.getElementById('user-notes').value;
+      document.getElementById('model-answer-box').textContent = modelAnswer;
       showScreen('screen-debrief');
     }
 
-    // --- PLACEHOLDERS (replaced in later steps) ---
-    function getNudge() {
-      document.getElementById('nudge-output').style.display = 'block';
-      document.getElementById('nudge-output').textContent = '(Nudge will come from Gemini in Step 3)';
+    // --- NUDGE ---
+    async function getNudge() {
+      const notes = document.getElementById('user-notes').value.trim();
+      if (!notes) { alert('Add some notes first, then ask for a nudge.'); return; }
+
+      const btn = document.getElementById('nudge-btn');
+      btn.disabled = true;
+      btn.textContent = 'Getting nudge...';
+
+      try {
+        const response = await fetch(CONFIG.questionWebhook, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type: sessionType, mode: 'nudge', question: currentQuestion, notes })
+        });
+
+        const data = await response.json();
+        const nudgeEl = document.getElementById('nudge-output');
+        nudgeEl.textContent = data.nudge || 'Could not load nudge.';
+        nudgeEl.style.display = 'block';
+
+      } catch (err) {
+        const nudgeEl = document.getElementById('nudge-output');
+        nudgeEl.textContent = 'Could not load nudge. Keep going.';
+        nudgeEl.style.display = 'block';
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Get nudge';
+      }
     }
 
-    function generateSummary() {
-      const summary = '## PM Design Interview — ' + new Date().toISOString().split('T')[0] + '\n\n' +
-        '**Question:** ' + document.getElementById('question-text').textContent + '\n\n' +
-        '**My notes:** ' + document.getElementById('user-notes').value + '\n\n' +
-        '**What I missed:** ' + document.getElementById('reflection').value + '\n\n' +
-        '*(Summary generation via Gemini coming in Step 5)*';
-      const box = document.getElementById('summary-output');
-      box.textContent = summary;
-      box.style.display = 'block';
+    // --- SUBMIT DEBRIEF ---
+    async function submitDebrief() {
+      const reflection = document.getElementById('reflection').value.trim();
+      if (!reflection) { alert('Add your reflection before submitting.'); return; }
+
+      const btn = document.getElementById('submit-btn');
+      const statusEl = document.getElementById('debrief-status');
+      btn.disabled = true;
+      btn.textContent = 'Submitting...';
+      statusEl.textContent = '';
+      statusEl.className = 'status-msg';
+
+      try {
+        const response = await fetch(CONFIG.debriefWebhook, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: sessionType,
+            question: currentQuestion,
+            model_answer: modelAnswer,
+            your_notes: document.getElementById('user-notes').value,
+            reflection: reflection
+          })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok || data.error) {
+          throw new Error(data.error || 'Submission failed.');
+        }
+
+        statusEl.textContent = 'Debrief saved. Check your email.';
+        statusEl.className = 'success-msg';
+        btn.textContent = 'Submitted';
+
+      } catch (err) {
+        statusEl.textContent = 'Could not save debrief (' + err.message + '). Your notes are still here.';
+        statusEl.className = 'error-msg';
+        btn.disabled = false;
+        btn.textContent = 'Submit debrief \u2192';
+      }
     }
 
-    function copySummary() {
-      const text = document.getElementById('summary-output').textContent;
-      if (!text) { alert('Generate the summary first.'); return; }
-      navigator.clipboard.writeText(text).then(() => alert('Copied to clipboard!'));
-    }
-
-    // --- SESSION INIT ---
-    window.onload = function() {
-      // Nothing to restore — no credentials stored in browser
-    };
+    window.onload = function() {};
 
   </script>
 
