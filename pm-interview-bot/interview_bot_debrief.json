@@ -1,0 +1,306 @@
+{
+  "name": "interview_bot_debrief",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "pm-interview-debrief",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "45c41344-dfcd-4833-a228-1e99572b1d4a",
+      "name": "Webhook",
+      "webhookId": "a050ef85-2d57-4117-a616-9413998980dc"
+    },
+    {
+      "parameters": {
+        "url": "=https://api.github.com/repos/gauravbansal1410/learning-ai-agents/contents/pm-interview-bot/question_history_{{ $json.type }}.md",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.GITHUB_PAT }}"
+            },
+            {
+              "name": "Accept",
+              "value": "application/vnd.github+json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        416,
+        0
+      ],
+      "id": "6760e4d2-7388-4e2b-8eef-d3f465d7efd9",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "url": "=https://api.github.com/repos/gauravbansal1410/learning-ai-agents/contents/pm-interview-bot/debrief_log.md",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.GITHUB_PAT }}"
+            },
+            {
+              "name": "Accept",
+              "value": "=application/vnd.github+json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        624,
+        0
+      ],
+      "id": "9c259203-6044-4520-aea7-90cc77ffb08d",
+      "name": "HTTP Request1"
+    },
+    {
+      "parameters": {
+        "jsCode": "return {\n  type: $input.first().json.body.type,\n  question: $input.first().json.body.question,\n  model_answer: $input.first().json.body.model_answer,\n  your_notes: $input.first().json.body.your_notes,\n  reflection: $input.first().json.body.reflection\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        208,
+        0
+      ],
+      "id": "3bd3edcc-ee3c-4a8d-bec0-f05b1c5fb4a6",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"status\": \"ok\" } }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1664,
+        0
+      ],
+      "id": "7d704c0b-3041-4822-9e44-eb3f4cd5ac98",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "jsCode": "const question = $('Code in JavaScript').first().json.question;\nconst type = $('Code in JavaScript').first().json.type;\nconst model_answer = $('Code in JavaScript').first().json.model_answer;\nconst your_notes = $('Code in JavaScript').first().json.your_notes;\nconst reflection = $('Code in JavaScript').first().json.reflection;\nconst date = new Date().toISOString().split('T')[0];\n\n// New question history entry\nconst newHistoryLine = `\\n- ${date}: ${question}`;\n\n// New debrief entry\nconst newDebriefEntry = `\\n\\n---\\n## ${date} — ${type}\\n**Question:** ${question}\\n\\n**Model Answer:** ${model_answer}\\n\\n**My Notes:** ${your_notes}\\n\\n**What I Missed:** ${reflection}`;\n\n// Fetch current file contents to append to them\nconst historySha = $('HTTP Request').first().json.sha;\nconst historyContent = Buffer.from($('HTTP Request').first().json.content, 'base64').toString('utf-8');\nconst debriefSha = $('HTTP Request1').first().json.sha;\nconst debriefContent = Buffer.from($('HTTP Request1').first().json.content, 'base64').toString('utf-8');\n\nreturn {\n  historySha,\n  historyContentEncoded: Buffer.from(historyContent + newHistoryLine).toString('base64'),\n  debriefSha,\n  debriefContentEncoded: Buffer.from(debriefContent + newDebriefEntry).toString('base64'),\n  question, type, model_answer, your_notes, reflection, date\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        832,
+        0
+      ],
+      "id": "7ff44270-004e-4273-974d-635dc6c2fb79",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "=https://api.github.com/repos/gauravbansal1410/learning-ai-agents/contents/pm-interview-bot/question_history_{{ $json.type }}.md",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.GITHUB_PAT }}"
+            },
+            {
+              "name": "Accept",
+              "value": "application/vnd.github+json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { \"message\": \"add question \" + $json.date, \"content\": $json.historyContentEncoded, \"sha\": $json.historySha } }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1040,
+        0
+      ],
+      "id": "76e0ff75-9139-4039-8c22-b5b4975fe42f",
+      "name": "HTTP Request2"
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "=https://api.github.com/repos/gauravbansal1410/learning-ai-agents/contents/pm-interview-bot/debrief_log.md",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.GITHUB_PAT }}"
+            },
+            {
+              "name": "Accept",
+              "value": "application/vnd.github+json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { \n  \"message\": \"add debrief \" + $('Code in JavaScript1').first().json.date, \n  \"content\": $('Code in JavaScript1').first().json.debriefContentEncoded, \n  \"sha\": $('Code in JavaScript1').first().json.debriefSha \n} }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1248,
+        0
+      ],
+      "id": "ff5d008d-1a1e-49f9-bb13-2f52b48593d3",
+      "name": "HTTP Request3"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $env.INTERVIEW_RECIPIENT_EMAIL }}",
+        "subject": "=PM Interview Debrief — {{ $('Code in JavaScript1').first().json.date }} — {{ $('Code in JavaScript1').first().json.type }}",
+        "message": "={{ \"<h2>PM Interview Debrief</h2>\" +\n\"<p><strong>Date:</strong> \" + $('Code in JavaScript1').first().json.date + \"</p>\" +\n\"<p><strong>Type:</strong> \" + $('Code in JavaScript1').first().json.type + \"</p>\" +\n\"<hr/>\" +\n\"<h3>Question</h3>\" +\n\"<p>\" + $('Code in JavaScript1').first().json.question + \"</p>\" +\n\"<h3>Model Answer</h3>\" +\n\"<p>\" + $('Code in JavaScript1').first().json.model_answer + \"</p>\" +\n\"<h3>My Notes</h3>\" +\n\"<p>\" + $('Code in JavaScript1').first().json.your_notes + \"</p>\" +\n\"<h3>What I Missed</h3>\" +\n\"<p>\" + $('Code in JavaScript1').first().json.reflection + \"</p>\" }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1456,
+        0
+      ],
+      "id": "129d053f-0e4a-4f2b-a5cf-26c8394bf46d",
+      "name": "Send a message",
+      "webhookId": "bb7e8a76-0e4b-4547-a490-fc05e1df5197",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "drpSKcyVEqA4o88n",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request2": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request3": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "268c1eb4-4612-4741-8442-e1fabf6bbf1f",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "f20372e1109effec654b2b932d6bd400cdd1ddd75e4f739a3cf69d8e94a56046"
+  },
+  "nodeGroups": [],
+  "id": "tBjBYfeviCcEVnpc",
+  "tags": []
+}
