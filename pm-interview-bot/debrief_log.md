@@ -43,3 +43,22 @@ solution: built an AI onboarding tool -> user tells the AI that i currently use 
 metrics: measure the adoption, outcome: switch decisions
 
 **What I Missed:** i could do segmentation better, more solutions.
+
+---
+## 2026-06-23 — product_design
+**Question:** Design a feature for a ride-sharing platform that allows users to optimize for "total trip utility" rather than just speed or cost, specifically for users commuting between suburban residential zones and dense urban office centers who currently struggle with the trade-offs between last-mile transit connectivity and door-to-door comfort.
+
+**Model Answer:** Design a feature for a high-frequency ride-sharing app that dynamically reconciles the conflicting needs of passengers wanting lower prices and drivers wanting higher earnings during periods of extreme supply-demand imbalance, while ensuring the platform maintains long-term marketplace health and brand trust.
+
+**My Notes:** users: daily commuters
+problems: either take door-to-door cab: expensive but comfortable and fast
+or take public transport: cheap but discomfort and slow
+solution: can we find a middle ground?
+1. schedule pool rides: tells the app that i want to go from A -> B at 6PM. App automatically creates a pool for optimal riders
+2. have a home to metro option recurring booking and metro to office recurring booking on the app. fixed price.
+3. if someone is driving, they can tell the app ad-hoc and they can give you some co-passengers/
+
+pick the first one.
+metrics: repeat users, ARPU, unit economics of platform
+
+**What I Missed:** need to fix the model answer
