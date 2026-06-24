@@ -62,3 +62,19 @@ pick the first one.
 metrics: repeat users, ARPU, unit economics of platform
 
 **What I Missed:** need to fix the model answer
+
+---
+## 2026-06-24 — product_design
+**Question:** Design a system for a peer-to-peer marketplace (such as eBay or Vinted) that proactively mitigates "transactional anxiety" for high-value items, specifically addressing the trust deficit between novice sellers and expert collectors where the primary points of friction are subjective condition grading, shipping liability, and the risk of fraudulent returns.
+
+**Model Answer:** Design a solution for a collaborative document editing platform that enables teams to maintain "contextual continuity" when transitioning from asynchronous drafting to real-time sync meetings, specifically addressing the friction where information density in long-form documents leads to fragmented decision-making and loss of alignment during live discussions.
+
+**My Notes:** stakeholder: buyer, seller, platform
+problem: for high value items, both buyer and seller can't trust each other easily. 
+solution: 1. the platform act as a trust (buyer pays money to the platform and the platform holds it, and pays it to the seller as soon as the product is received).
+2. the platform arranges the quality checks and the delivery.
+3. the platform ensure AI based quality checks.
+
+solution 1 -> limited liability and easy to build, high impact
+
+**What I Missed:** metrics and edge cases
