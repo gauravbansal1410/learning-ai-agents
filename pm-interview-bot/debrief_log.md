@@ -78,3 +78,41 @@ solution: 1. the platform act as a trust (buyer pays money to the platform and t
 solution 1 -> limited liability and easy to build, high impact
 
 **What I Missed:** metrics and edge cases
+
+---
+## 2026-06-25 — product_design
+**Question:** Design a collaborative decision-making interface for a project management suite that addresses "contextual drift" in cross-functional teams, specifically solving for the friction where asynchronous updates in a project plan cause misalignment between engineering, product, and stakeholders, despite all parties having access to the same centralized source of truth.
+
+**Model Answer:** To address **contextual drift**, we must shift the paradigm from "a shared document" to "a shared decision trail." The problem isn't the lack of information; it’s the lack of *intent* behind the changes.
+
+### 1. User Insight
+When an engineer or PM updates a project plan asynchronously, they are often focused on the *output* (e.g., changing a date) rather than the *impact* on the stakeholder's mental model. Stakeholders notice the change, lose trust in the timeline, and initiate a "communication tax"—back-and-forth threads to understand the "why"—which creates friction and delays.
+
+### 2. Problem Definition
+The centralized source of truth (the plan) fails because it is **stateless**. It shows the *current* state but hides the *evolution* of the decision. We need to bridge the gap between "the change" and "the context" to prevent misalignment.
+
+### 3. Proposed Solution: The "Decision-Gate & Contextual-Diff" Feature
+I propose a two-part UI intervention within the project suite:
+
+*   **Intent-Based Change Request:** When a user moves a task or changes a status/scope, a lightweight "Why this change?" modal triggers automatically. It offers pre-filled tags (e.g., "Dependency Shift," "Scope Creep," "Resource Constraint"). The user’s input becomes a mandatory "comment-as-change-log."
+*   **The "Delta-View" Sidebar:** Instead of a generic notification feed, the UI includes a "Delta-View" dashboard. This highlights what changed in the last 24 hours in the user’s specific lane. It visually pairs the **old state vs. new state** with the **attached "Why" context** pinned directly to the element. 
+
+### 4. Trade-offs
+*   **Friction vs. Clarity:** Requiring an explanation for every change adds a "friction tax" to the contributor. 
+    *   *Mitigation:* Use AI-suggested justifications based on previous comments or Slack/Jira history so users can click to confirm rather than write.
+*   **Notification Fatigue:** If every minor change prompts a "Delta," users will tune it out.
+    *   *Mitigation:* Use "Smart Grouping." Only alert stakeholders if the change impacts their specific KPIs or critical path dependencies.
+
+### 5. Success Metrics
+*   **Primary Metric: "Sync-Time Latency":** The time elapsed between a project plan update and the stakeholder’s acknowledgment/approval of the change. A successful product should reduce this time.
+*   **Secondary Metric: "Communication Tax Ratio":** The volume of Slack/email threads initiated regarding "Why did X change?" compared to the number of changes made in the platform. A downward trend indicates better contextual clarity.
+*   **Qualitative Metric:** Sentiment score from periodic surveys asking users: *"Do you feel surprised by plan changes?"* (Goal: Reduce "surprisal" events).
+
+***
+
+### PM Interviewer Tip:
+*If asked for a "moonshot" feature:* I would suggest a **"Simulation Mode."** Before an engineer hits "Save" on a major timeline shift, they can toggle "Simulate Change." The UI would highlight exactly which stakeholder KPIs will turn "red" or "at-risk" before the change is committed, forcing proactive alignment rather than reactive fixing.
+
+**My Notes:** user, problem, solution, metrics
+
+**What I Missed:** reflection test
