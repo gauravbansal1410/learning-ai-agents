@@ -116,3 +116,65 @@ I propose a two-part UI intervention within the project suite:
 **My Notes:** user, problem, solution, metrics
 
 **What I Missed:** reflection test
+
+---
+## 2026-06-25 — product_design
+**Question:** Design a "knowledge synthesis" layer for an enterprise documentation platform (like Confluence or Notion) that automatically resolves conflicting information across thousands of internal documents, specifically addressing the "stale truth" paradox where legacy documentation, contradictory meeting transcripts, and recent Slack discussions coexist, causing high-performing teams to lose velocity due to ambiguity.
+
+**Model Answer:** This is a classic "Product Strategy + AI" design challenge. To excel, you must avoid simply suggesting a "magic AI button" and instead focus on **trust, provenance, and human-in-the-loop workflows.**
+
+---
+
+### 1. User Insight
+Knowledge workers in large enterprises suffer from "Context Fragmentation." They don't lack information; they lack the ability to distinguish between **official policy** (the doc), **aspirational goals** (the meeting transcript), and **operational reality** (the Slack thread). The friction isn't just the contradiction; it’s the *cognitive tax* of verifying which source is the "source of truth."
+
+### 2. Problem Definition
+The "Stale Truth Paradox" is a **Metadata and Recency issue.** Our goal is to provide a synthesis layer that **promotes the most relevant information while highlighting the lineage of conflicts**, rather than simply deleting old data, which might be contextually necessary.
+
+**Core Problem:** How can we algorithmically identify conflicting assertions and surface a "weighted truth" to the user while maintaining transparency about the data's origin?
+
+### 3. Proposed Solutions
+
+#### A. The "Truth-Weighting" Engine (The Backend)
+Implement an AI-driven scoring model for every knowledge nugget (paragraph or block).
+*   **Decay/Recency Weighting:** Newer edits outweigh legacy docs.
+*   **Source Authority:** Official policy docs > Slack threads > Meeting transcripts.
+*   **Verification Signals:** If a team lead clicks "Confirm" on a specific assertion, that block receives a "Verified Truth" badge.
+
+#### B. The "Conflict Overlay" UI (The Frontend)
+Instead of a single document, present a **"Synthesis View" toggle** on any page:
+*   **The Verified View:** Shows the current consensus, with hyperlinked citations to the source.
+*   **The Conflict Sidebar:** An AI-generated "Delta Report" that highlights discrepancies: *"You are viewing the 2024 onboarding guide, but Slack discussions from @Engineering-Lead indicate this process changed last week. [Link to Slack thread]."*
+
+#### C. Human-in-the-Loop "Syncer" Bot
+A proactive bot that identifies top-level conflicts across the enterprise. When a conflict is detected (e.g., Doc A says Feature X is deprecated; Doc B says it’s active), the bot creates a **"Synthesis Task"** assigned to the document owner, surfacing the contradictory sources and prompting a 1-click update.
+
+### 4. Trade-offs
+*   **False Positives (The "Over-Correct" Risk):** If the AI auto-updates docs, it may override legitimate context (e.g., a "legacy mode" doc). *Mitigation: Never auto-delete; always suggest/draft changes for human review.*
+*   **Privacy/Noise:** Slack transcripts contain private team banter. *Mitigation: Limit the ingestion scope to public/project-aligned channels only, excluding private DMs.*
+*   **System Complexity:** High compute costs for constant cross-document indexing. *Mitigation: Use incremental indexing based on document activity (only re-index changed documents).*
+
+### 5. Success Metrics
+*   **Primary Metric:** **"Time to Resolution"** – The average time between a conflict detection and an update being accepted by a document owner.
+*   **Secondary Metrics:**
+    *   **Adoption Rate:** Percentage of users toggling the "Synthesis View."
+    *   **Search Success:** Reduction in repeat search queries for the same topic (indicating the user found the correct answer on the first attempt).
+    *   **Trust Score:** Periodic user surveys ("How much do you trust the 'Verified' tag on this document?").
+
+---
+
+### Coach's Closing Advice:
+*   **Don't say "The AI solves it."** Use terms like "weighted scoring," "lineage," and "human-in-the-loop."
+*   **Emphasize Context over Deletion.** Enterprises are terrified of losing legacy knowledge. Position your solution as an **annotation/synthesis layer** rather than a "cleanup tool."
+*   **Focus on the Human Owner.** By making it easy for the document owner to acknowledge or dismiss a conflict, you turn a tedious housekeeping chore into a frictionless workflow.
+
+**My Notes:** users: internal teams in the company (engineers, PM, UX, business folks, management teams, etc)
+pain points: information scattered across multiple places -> need single knowlegde collection point and then once we have that, we need the knowledge to be correct and relevant.
+i am thinking collection is not the most difficult part, just need to connect the tool to different knowledge sources.
+but more important is the accuracy of that info.
+thinking there are a couple of ways.
+solutions: features to identify facts -> repeated citations -> higher repeatations probably mean higher accuracy.
+date first published -> may imply higher accuracy, the latest is most accurate
+
+
+**What I Missed:** test reflection
