@@ -12,7 +12,7 @@
       "typeVersion": 2.1,
       "position": [
         16,
-        -32
+        -48
       ],
       "id": "983dc199-a9a4-4ba6-99bf-1d7febcc753b",
       "name": "Webhook",
@@ -30,8 +30,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        576,
-        -32
+        944,
+        48
       ],
       "id": "64e1bcc6-af71-4115-aeca-5ba47ed7da25",
       "name": "HTTP Request"
@@ -45,8 +45,8 @@
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.5,
       "position": [
-        752,
-        -32
+        1120,
+        48
       ],
       "id": "e39f11d0-bcbd-443d-8149-d942586678f2",
       "name": "Respond to Webhook"
@@ -72,8 +72,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        208,
-        -32
+        592,
+        48
       ],
       "id": "2e16e78f-286b-4dd8-880d-17fa9b701283",
       "name": "HTTP Request1",
@@ -86,11 +86,145 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        400,
-        -32
+        768,
+        48
       ],
       "id": "d2958047-f602-47f9-9672-473a8c12ca58",
       "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "fb8aacab-6cea-4f2c-a965-dbc470e35f33",
+              "leftValue": "={{ $json.body.mode }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        224,
+        -48
+      ],
+      "id": "1be2ce4d-cbdd-42c5-a6f2-872c41e1c133",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "805c475b-60f8-4af8-b1cc-4634198ddbda",
+              "leftValue": "={{ $json.body.mode }}",
+              "rightValue": "model_answer",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        384,
+        -160
+      ],
+      "id": "e1e92511-0579-498a-9772-da6814bffe8c",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-lite-latest:generateContent?key={{ $env.GEMINI_API_KEY }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { \"contents\": [{ \"parts\": [{ \"text\": \"You are a PM interview coach. Give a strong model answer for this product design interview question. Structure it clearly: user insight, problem definition, solutions, trade-offs, success metrics. Be specific and concise.\\n\\nQuestion: \" + $json.body.question }] }] } }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        576,
+        -336
+      ],
+      "id": "ce70bf34-6154-4473-836e-d3138b9dd423",
+      "name": "HTTP Request2"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"model_answer\": $json.candidates[0].content.parts[0].text.trim() } }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        768,
+        -336
+      ],
+      "id": "94d4d901-3df7-45ec-835e-6801140222d2",
+      "name": "Respond to Webhook1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-lite-latest:generateContent?key={{ $env.GEMINI_API_KEY }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { \"contents\": [{ \"parts\": [{ \"text\": \"You are a PM interview coach. The candidate is answering this question:\\n\\n\" + $json.body.question + \"\\n\\nHere are their notes so far:\\n\\n\" + $json.body.notes + \"\\n\\nGive them one short, specific nudge (2-3 sentences max) to push their thinking further. Don't give the answer away. Point to what they are missing or what to explore next.\" }] }] } }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        608,
+        -144
+      ],
+      "id": "bf05f278-c1d3-478f-b4bd-06b309aae87d",
+      "name": "HTTP Request3"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"nudge\": $json.candidates[0].content.parts[0].text.trim() } }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        832,
+        -144
+      ],
+      "id": "86ea1121-b8ae-4860-a60d-add5441b6f44",
+      "name": "Respond to Webhook2"
     }
   ],
   "pinData": {},
@@ -99,7 +233,7 @@
       "main": [
         [
           {
-            "node": "HTTP Request1",
+            "node": "If",
             "type": "main",
             "index": 0
           }
@@ -138,6 +272,64 @@
           }
         ]
       ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request2": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request3": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": true,
@@ -149,7 +341,7 @@
     "callerPolicy": "workflowsFromSameOwner",
     "availableInMCP": false
   },
-  "versionId": "9d2ddedf-0f64-4849-8c5f-c4ec97d6af0b",
+  "versionId": "70052f8c-6cf0-4a66-b7fb-b6d9a4bbde09",
   "meta": {
     "instanceId": "f20372e1109effec654b2b932d6bd400cdd1ddd75e4f739a3cf69d8e94a56046"
   },
