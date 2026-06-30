@@ -178,3 +178,34 @@ date first published -> may imply higher accuracy, the latest is most accurate
 
 
 **What I Missed:** test reflection
+
+---
+## 2026-06-30 — product_design
+**Question:** How would you improve the shopping experience on Amazon for visually impaired users?
+
+**Model Answer:** **User & Problem**
+The user is a visually impaired shopper (ranging from low vision to total blindness) who relies on assistive technologies like screen readers (VoiceOver/TalkBack), braille displays, or high-contrast modes. The core problem is that Amazon’s current shopping experience—highly visual, image-heavy, and cluttered with dynamic elements—creates high friction in navigation, product comparison, and visual verification. Specifically, unoptimized alt-text on product images, inconsistent heading structures, and complex "quick view" overlays make it difficult for these users to independently confirm product specifications, quality, and user sentiment before purchasing.
+
+**Goals & Success Metrics**
+The goal is to increase accessibility and independent completion rates for visually impaired users.
+1. **Task Success Rate:** The percentage of users who can successfully complete a purchase from search to checkout without human assistance.
+2. **Reduced Time-to-Purchase:** A decrease in the time required to navigate from search results to cart, signaling improved information architecture and screen-reader efficiency.
+3. **Product Information Comprehension:** A reduction in return rates for items where the primary complaint is "item not as described," indicating that product descriptions and assistive summaries are accurate and accessible.
+
+**Solution**
+1. **AI-Powered Semantic Image Descriptions:** Implement a generative model to provide rich, descriptive alt-text for all product images. Instead of generic labels (e.g., "IMG_492"), the system will provide meaningful descriptions of size, material texture, and color variations, allowing users to "see" the item via screen reader narration.
+2. **Accessibility-First Navigation "Smart Path":** Introduce a specialized UI mode that strips away ephemeral marketing banners, infinite-scroll ads, and visual clutter. This mode forces a simplified, vertical linear flow that presents critical information—price, shipping, specs, and aggregated review sentiment—in a standardized, screen-reader-optimized order.
+3. **Voice-Guided Review Summaries:** Instead of forcing users to scroll through hundreds of individual reviews, provide a synthesized, accessible audio summary that highlights common pros/cons and specific accessibility-related feedback (e.g., "users mention the buttons are tactile and easy to locate").
+
+**Trade-offs**
+I am choosing NOT to build a dedicated separate app for visually impaired users. Maintaining a separate codebase creates a "second-class citizen" product that inevitably falls behind on feature parity. Instead, I am choosing to bake these features into the existing platform to ensure that all accessibility improvements benefit the entire user base (e.g., better image descriptions help SEO and all users) and that the experience remains consistent across all devices.
+
+**Risks**
+1. **Risk: Hallucination of Product Details.** AI-generated descriptions could inaccurately represent product specs (e.g., misidentifying a material). *Mitigation:* Implement a human-in-the-loop audit for high-volume items and display a disclaimer for AI-generated descriptions, allowing users to report inaccuracies that trigger manual verification.
+2. **Risk: Performance Latency.** Adding AI processing to thousands of product pages could slow down page load times. *Mitigation:* Pre-compute descriptions at the time of catalog ingestion rather than generating them in real-time during the user's search session.
+
+**My Notes:** Can't navigate.
+Mainly need some voice assisted tool.
+
+
+**What I Missed:** Testing the bot
