@@ -209,3 +209,31 @@ Mainly need some voice assisted tool.
 
 
 **What I Missed:** Testing the bot
+
+---
+## 2026-06-30 — product_design
+**Question:** Design a feature for a video conferencing platform that facilitates more equitable participation during hybrid meetings.
+
+**Model Answer:** **User & Problem**
+The primary users are hybrid teams where some participants are physically co-located in a meeting room while others join remotely. The core problem is "proximity bias" and the participation gap: remote participants often struggle to break into the conversation due to physical side-conversations, lack of visual context, and a disconnect from the room's energy, while in-room participants feel the remote attendees are disengaged or lagging.
+
+**Goals & Success Metrics**
+The goal is to equalize the "airtime" and contribution quality between in-room and remote participants.
+1. **Participation Parity:** The ratio of average speaking time between remote and in-room participants.
+2. **Sentiment Equality:** A post-meeting survey score measuring "felt inclusion" for both groups.
+3. **Engagement Rate:** Frequency of remote participant usage of interactive tools (hand-raising, chat, polls) during the session.
+
+**Solution**
+1. **AI-Driven Smart Framing & Audio Isolation:** Deploy localized microphone arrays in meeting rooms that automatically segment and individualize the video/audio feeds of in-room participants. This presents a "gallery view" of everyone—regardless of location—rather than a single wide-angle shot of the room, ensuring remote users don't feel like secondary spectators.
+2. **"Queueing" & Non-Verbal Signaling UI:** Implement a native "In-Meeting Request" feature that allows remote users to place themselves in a visual queue when they wish to speak. The in-room display will show this queue prominently, notifying the room moderator or the speaker that a remote participant is waiting, effectively mitigating the difficulty of "interrupting" a physical conversation.
+
+**Trade-offs**
+I am not prioritizing a VR/AR immersive experience. While immersive tech could level the playing field, it requires specialized hardware that creates a high barrier to entry. I am prioritizing software-based solutions that work on existing laptops and common office meeting hardware to ensure immediate, widespread adoption rather than niche utility.
+
+**Risks**
+1. **Risk:** Increased cognitive load on the moderator to track both the physical room and the digital queue. **Mitigation:** Integrate the digital queue into existing room-hardware interfaces (like a tablet on the table) so the moderator doesn't need to check a separate laptop screen.
+2. **Risk:** Over-segmentation of the room causing fragmented conversation. **Mitigation:** Implement a "focus mode" that highlights the current speaker (remote or in-room) to maintain a single center of gravity for the conversation flow, preventing the experience from feeling like a disjointed assembly of individual feeds.
+
+**My Notes:** Testing bot
+
+**What I Missed:** Testing reflection
