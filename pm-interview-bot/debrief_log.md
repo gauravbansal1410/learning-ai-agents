@@ -237,3 +237,33 @@ I am not prioritizing a VR/AR immersive experience. While immersive tech could l
 **My Notes:** Testing bot
 
 **What I Missed:** Testing reflection
+
+---
+## 2026-07-01 — product_design
+**Question:** Design a feature for a social media platform that helps users manage their digital well-being.
+
+**Model Answer:** **User & Problem**
+The user is a habitual social media consumer who experiences "infinite scroll fatigue," leading to unintended time loss and decreased mental well-being. The core problem is the disconnect between the user's intent (connecting with friends, staying informed) and the outcome (passive, dopamine-driven consumption that interferes with their daily productivity and real-world presence).
+
+**Goals & Success Metrics**
+The goal is to provide users with proactive agency over their time, shifting usage from passive consumption to intentional engagement.
+1. **Time Well Spent:** An increase in "Active Session" duration (interaction/creation) vs. "Passive Session" duration (scrolling).
+2. **Intentionality Rate:** The percentage of users who set and subsequently adhere to their personalized daily usage caps.
+3. **User Sentiment:** A positive delta in quarterly survey metrics measuring "feeling in control of my time on this platform."
+
+**Solution**
+1. **The "Intent Gateway":** Before the app loads the feed, a quick, friction-adding interstitial asks the user: "What is your goal for this session?" (e.g., Check messages, Post an update, Get news). If the user selects a goal, the interface provides a shortcut to that specific area, effectively bypassing the infinite feed.
+2. **Dynamic Context-Aware Pauses:** A "Session Break" feature that triggers a gentle, full-screen nudge after 30 minutes of continuous scrolling, asking the user if they wish to continue or take a 15-minute "digital recess." 
+3. **Intentionality Dashboard:** A weekly insights view that highlights not just screen time, but "Active" vs. "Passive" usage patterns, with one-click toggles to limit specific time-sink categories (e.g., Short-form video).
+
+**Trade-offs**
+We are choosing not to implement "Hard Blockers" or "App Lockouts" that force the user to close the app. While effective for extreme usage, hard blockers often result in users bypassing the system entirely or deleting the app, which damages long-term retention. Our focus is on fostering intentionality and self-regulation rather than restrictive enforcement.
+
+**Risks**
+1. **Engagement Cannibalization:** The primary business risk is a decrease in ad inventory if users spend less time on the app. We mitigate this by positioning the feature as a "Premium" or "High-Trust" brand differentiator, which can actually increase long-term user LTV and reduce churn.
+2. **"Banner Blindness":** Users may quickly habituate to the "Intent Gateway" and click through it reflexively. We mitigate this by randomizing the prompt questions and using behavioral design—such as changing the button colors or positions—to ensure the user remains cognitively engaged with the decision to continue.
+
+**My Notes:** Problem: Doom scrolling, not learning, dopamine hits, low attention spans
+Solution: time spent on the app by content type, content category engaged, select content category, social suggestions (what your friends have been learning about)
+
+**What I Missed:** Need to think more about overall platform goals too.
