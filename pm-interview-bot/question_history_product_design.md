@@ -12,3 +12,4 @@
 - 2026-06-25: Design a "knowledge synthesis" layer for an enterprise documentation platform (like Confluence or Notion) that automatically resolves conflicting information across thousands of internal documents, specifically addressing the "stale truth" paradox where legacy documentation, contradictory meeting transcripts, and recent Slack discussions coexist, causing high-performing teams to lose velocity due to ambiguity.
 - 2026-06-30: How would you improve the shopping experience on Amazon for visually impaired users?
 - 2026-06-30: Design a feature for a video conferencing platform that facilitates more equitable participation during hybrid meetings.
+- 2026-07-01: Design a feature for a social media platform that helps users manage their digital well-being.
