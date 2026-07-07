@@ -13,3 +13,4 @@
 - 2026-06-30: How would you improve the shopping experience on Amazon for visually impaired users?
 - 2026-06-30: Design a feature for a video conferencing platform that facilitates more equitable participation during hybrid meetings.
 - 2026-07-01: Design a feature for a social media platform that helps users manage their digital well-being.
+- 2026-07-07: Design a feature for a global food delivery platform that addresses the challenge of food waste for restaurant partners.
