@@ -267,3 +267,34 @@ We are choosing not to implement "Hard Blockers" or "App Lockouts" that force th
 Solution: time spent on the app by content type, content category engaged, select content category, social suggestions (what your friends have been learning about)
 
 **What I Missed:** Need to think more about overall platform goals too.
+
+---
+## 2026-07-07 — product_design
+**Question:** Design a feature for a global food delivery platform that addresses the challenge of food waste for restaurant partners.
+
+**Model Answer:** **User & Problem**
+The primary users are restaurant owners and kitchen managers who face daily uncertainty in demand, leading to surplus perishable inventory at the end of business hours. The core problem is that restaurants are currently forced to dispose of perfectly edible, high-quality food that has not been sold, representing both a financial loss and an operational waste management burden.
+
+**Goals & Success Metrics**
+The goal is to minimize food waste by connecting surplus inventory with value-conscious consumers through the existing delivery infrastructure. 
+1. **Waste Diversion Rate:** Total weight or percentage of surplus food sold rather than discarded.
+2. **Restaurant Incremental Revenue:** Additional profit generated from items that would otherwise have been written off as a total loss.
+3. **Conversion Rate:** The percentage of "Surplus Deals" views that result in a completed transaction.
+
+**Solution**
+1. **"Flash Savings" Inventory Management Portal:** A simplified UI for kitchen staff to input "end-of-day surplus bags" (e.g., a "Baker’s Dozen" assortment or "Chef’s Selection") with one tap. This minimizes friction for busy staff during closing hours.
+2. **Dynamic "Last Chance" Discovery Feed:** A dedicated section in the consumer app that surfaces these discounted bundles based on proximity and the user's past ordering preferences. This creates a sense of urgency and incentivizes immediate purchase.
+3. **Automated Batch Scheduling:** An AI-driven recommendation engine that prompts restaurants to create listings based on historical sales data and current day-of-week trends, helping them anticipate surplus before it occurs.
+
+**Trade-offs**
+I am choosing not to implement a custom "on-demand delivery" model for these surplus items. Instead, I am defaulting these orders to "Pickup Only" or "Batch-Routed Delivery." By avoiding high-priority, single-item delivery logistics, we keep costs low for the consumer and ensure the food remains affordable, which is the primary driver for a surplus marketplace.
+
+**Risks**
+1. **Food Safety/Liability:** There is a risk of foodborne illness if items are held incorrectly. *Mitigation:* The platform will mandate strict "best-by" time stamps and require restaurants to sign a safety compliance waiver specifically for surplus items, limiting availability to shelf-stable or temperature-controlled items.
+2. **Cannibalization:** Existing customers might wait for the "Flash Savings" discount rather than ordering at full price. *Mitigation:* The "Surplus" feed will only be activated 30-60 minutes before closing and will feature randomized "mystery bags" rather than specific menu items to discourage price-sensitive customers from waiting.
+
+**My Notes:** reduce waste by penalizing cancellations, incentivizing rider acceptance
+if there is waste, introduce features to sell it at lower price - rescue feature, special discounts
+
+
+**What I Missed:** testing the bot
