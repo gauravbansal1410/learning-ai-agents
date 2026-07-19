@@ -298,3 +298,33 @@ if there is waste, introduce features to sell it at lower price - rescue feature
 
 
 **What I Missed:** testing the bot
+
+---
+## 2026-07-19 — product_design
+**Question:** Design an AI-powered search feature for a massive e-commerce platform that helps users find products when they cannot describe them using traditional keywords.
+
+**Model Answer:** **User & Problem**
+The user is a shopper who has a specific visual or functional intent in mind—such as a "living room vibe" or a "specific style of coffee mug"—but lacks the precise technical terminology or vocabulary to find it using traditional keyword search. The core problem is the "vocabulary gap," where intent is clear in the user's mind but fails to translate into text queries, leading to abandoned searches, irrelevant results, and decreased conversion.
+
+**Goals & Success Metrics**
+The goal is to reduce search friction by bridging the gap between visual intent and product discovery.
+*   **Conversion Rate (CVR):** The percentage of users who complete a purchase after using the AI search feature compared to traditional search.
+*   **Search Refinement Rate (Reduction):** A decrease in the number of follow-up queries required to find a relevant product, indicating higher initial accuracy.
+*   **Add-to-Cart Rate from Search Results:** A proxy for the relevance of the AI-generated recommendations.
+
+**Solution**
+1.  **Multimodal Query Input:** Allow users to combine images (uploaded photos or screenshots) with natural language modifiers (e.g., "Show me this chair, but in a darker wood finish"). This leverages computer vision to understand the baseline aesthetic and NLP to process specific user constraints.
+2.  **Conversational Style Filter:** Implement an interactive AI shopping assistant that asks follow-up questions to narrow down ambiguous search terms (e.g., "I'm looking for a summer outfit"). The AI would ask, "Is this for a formal event or a casual brunch?" to dynamically filter the product catalog.
+3.  **"Vibe-Based" Semantic Search:** Map catalog metadata to emotional or aesthetic vectors (e.g., "mid-century modern," "industrial," "cozy") to allow users to search using descriptive adjectives rather than specific product names.
+
+**Trade-offs**
+I am choosing not to implement "real-time generative image creation" (e.g., letting users build an image from scratch to search). While innovative, this creates a high barrier to entry and generates unrealistic expectations regarding product availability. I am prioritizing search-and-find efficiency over creative synthesis to ensure the user stays within our existing product catalog and maintains a higher likelihood of purchase.
+
+**Risks**
+*   **Algorithm Bias/Accuracy:** AI search might interpret a user’s intent incorrectly, resulting in "hallucinated" search results that don't match the inventory. *Mitigation:* Implement a "fallback" to standard keyword search if the AI confidence score falls below a certain threshold, ensuring the user is never left with zero results.
+*   **Infrastructure Latency:** Processing multimodal inputs in real-time can be computationally expensive and slow down page load times. *Mitigation:* Use lightweight embedding models for initial classification and prioritize pre-computing catalog vectors during non-peak hours to minimize live query processing time.
+
+**My Notes:** if people can't describe it exactly, they'll use proxies: where is it usually placed, what is it's use, how does it look like, something similar, etc.
+i guess, these are all just additional features that can be used to describe a thing and search model needs to to account for those.
+
+**What I Missed:** i think i forgot about multi modal inputs.
