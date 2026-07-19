@@ -14,3 +14,4 @@
 - 2026-06-30: Design a feature for a video conferencing platform that facilitates more equitable participation during hybrid meetings.
 - 2026-07-01: Design a feature for a social media platform that helps users manage their digital well-being.
 - 2026-07-07: Design a feature for a global food delivery platform that addresses the challenge of food waste for restaurant partners.
+- 2026-07-19: Design an AI-powered search feature for a massive e-commerce platform that helps users find products when they cannot describe them using traditional keywords.
